@@ -3,61 +3,79 @@
 key_left = keyboard_check(vk_left);
 key_right = keyboard_check(vk_right);
 key_jump = keyboard_check_pressed(vk_space);
+key_shift = keyboard_check(vk_lshift)
 
-var move = key_right - key_left;
-
-hsp = move*walksp;
 vsp = vsp + grv;
 
-ground_collision = place_meeting(x,y+sign(vsp),oWall)
+var move = key_right - key_left;
+hsp = move*walksp + (key_shift*2*sign(move))
 
-if (ground_collision)
+
+ground_collision = place_meeting(x,y+vsp,oWall)
+wall_collision = place_meeting(x+hsp,y,oWall)
+
+if (wall_collision)
 {
-	vsp = 0
-}
-
-show_debug_message(hsp)
-show_debug_message(vsp)
-
-
-if (place_meeting(x,y+1,oWall) && key_jump)
-{
-	vsp+=-jump
-}
-
-if (place_meeting(x+1,y,oWall))
-{
-	while (!place_meeting(x+sign(hsp),y,oWall))
-	{
-		x+=sign(hsp)	
-	}
 	hsp = 0
 }
 
+x+=hsp
 
-if (place_meeting(x,y+sign(vsp),oWall))
+// Vertical Movement
+
+if (ground_collision)
 {
-	while (place_meeting(x,y,oWall))
-	{
-		y-=1	
-	}
-	vsp = 0
+	if (vsp > 0) vsp = distance_to_object(oWall)-1
+	if (vsp < 0) vsp = distance_to_object(oWall)-1
 }
 
-// Tickers
-x+=hsp
+if (key_jump)
+{
+	vsp=0
+	
+	vsp+=-jump
+	
+	sprite_index = scott_jump
+	image_index = 0
+	image_speed = 0
+}
+
 y+=vsp
 
 // Animation
 
 if (hsp > 0) 
 {
-	sprite_index = scott_walk; 
-	image_xscale=1;
+	if (key_shift)
+	{
+		sprite_index = scott_run
+		image_xscale=1;
+		image_speed = 1
+	}
+	else
+	{
+		sprite_index = scott_walk; 
+		image_xscale=1;
+		image_speed = 1
+	}
 }
 else if (hsp < 0) 
 {
-	sprite_index = scott_walk
-	image_xscale=-1;
+	if (key_shift)
+	{
+		sprite_index = scott_run
+		image_xscale=-1
+		image_speed = 1
+	}
+	else
+	{
+		sprite_index = scott_walk
+		image_xscale=-1;
+		image_speed = 1
+	}
 }
-else sprite_index = scott_idle
+else if (vsp == 0 && !(place_meeting(x,y+1,oWall) && key_jump)) 
+{
+	sprite_index = scott_idle
+	image_speed = 1
+}
